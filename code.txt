@@ -1,0 +1,115 @@
+Sub Ticker()
+
+Dim ws As Worksheet
+Dim total_vol As Double
+Dim year_open As Double
+Dim year_close As Double
+Dim yearly_change As Double
+Dim percent_change As Double
+
+
+Dim open_price, close_price As Double
+
+
+'run through each worksheet
+For Each ws In Worksheets
+    'set headers
+    ws.Cells(1, 9).Value = "Ticker"
+    ws.Cells(1, 10).Value = "Yearly Change"
+    ws.Cells(1, 11).Value = "Percent Change"
+    ws.Cells(1, 12).Value = "Total Stock Volume"
+
+
+    j = 2
+    
+    year_open = ws.Cells(2, 3).Value
+    
+    lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+
+    For i = 2 To lastrow
+    
+        If ws.Cells(i + 1, 1).Value = ws.Cells(i, 1).Value Then
+            total_vol = ws.Cells(i, 7).Value + total_vol
+        ElseIf ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+            total_vol = ws.Cells(i, 7).Value + total_vol
+            'set ticker
+            ws.Cells(j, 9).Value = ws.Cells(i, 1).Value
+            'set total volumn
+            ws.Cells(j, 12).Value = total_vol
+            
+            year_close = ws.Cells(i, 6).Value
+            
+            yearly_change = year_close - year_open
+            
+            'set year change
+            ws.Cells(j, 10).Value = yearly_change
+            
+            'color for +,- red 3, green 4
+            If ws.Cells(j, 10).Value < 0 Then
+                ws.Cells(j, 10).Interior.ColorIndex = 3
+            Else
+                ws.Cells(j, 10).Interior.ColorIndex = 4
+            End If
+                        
+            'set percent change
+            'percent_change = (yearly_change * 100) / year_open
+            If yearly_change <> 0 And year_open <> 0 Then
+                ws.Cells(j, 11).Value = FormatPercent(yearly_change / year_open)
+            ElseIf yearly_change = 0 And year_open = 0 Then
+                ws.Cells(j, 11).Value = FormatPercent(0)
+            End If
+            
+            'ws.Cells(j, 11).Value = Application.WorksheetFunction.Percentile(percent_change, 0)
+                        
+            j = j + 1
+            total_vol = 0
+            
+            year_open = ws.Cells(i + 1, 3).Value
+            
+        End If
+
+    Next i
+    
+    
+    'BONUS
+    Dim max As Double
+    Dim min As Double
+    Dim max_vol As Double
+    
+    'set headers
+    ws.Cells(1, 16).Value = "Ticker"
+    ws.Cells(1, 17).Value = "Value"
+    ws.Cells(2, 15).Value = "Greatest % Increase"
+    ws.Cells(3, 15).Value = "Greatest % Decrease"
+    ws.Cells(4, 15).Value = "Greatest Total Volumn"
+    
+    lastrow = ws.Cells(Rows.Count, 11).End(xlUp).Row
+
+    max = Application.WorksheetFunction.max(ws.Range("K2:K" & lastrow))
+    min = Application.WorksheetFunction.min(ws.Range("K2:K" & lastrow))
+    max_vol = Application.WorksheetFunction.max(ws.Range("L2:L" & lastrow))
+    
+    ws.Cells(2, 17).Value = FormatPercent(max)
+    ws.Cells(3, 17).Value = FormatPercent(min)
+    ws.Cells(4, 17).Value = max_vol
+    
+    For i = 2 To lastrow
+        'set ticker
+        If ws.Cells(i, 11).Value = max Then
+            ws.Cells(2, 16).Value = ws.Cells(i, 9).Value
+        ElseIf ws.Cells(i, 11).Value = min Then
+            ws.Cells(3, 16).Value = ws.Cells(i, 9).Value
+        ElseIf ws.Cells(i, 12).Value = max_vol Then
+            ws.Cells(4, 16).Value = ws.Cells(i, 9).Value
+        End If
+    
+    Next i
+    
+
+Next ws
+
+
+End Sub
+
+
